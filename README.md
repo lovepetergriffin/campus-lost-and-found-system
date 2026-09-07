@@ -1,2 +1,22 @@
-# campus-lost-and-found-system
-A Java-based campus lost and found system built with Spring Boot and Vue for the Software Metrics course project.
+# Campus Lost and Found System
+
+A course project for Software Metrics.
+
+## Tech Stack
+
+- Backend: Java 17
+- Spring Boot
+- MyBatis-Plus
+- MySQL 8
+- Frontend: Vue 3
+- Element Plus
+
+## Team
+
+Software Metrics Course Team
+
+## Branch Strategy
+
+- main
+- develop
+- feature/*
