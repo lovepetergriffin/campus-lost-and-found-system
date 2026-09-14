@@ -73,6 +73,21 @@ class CoreWorkflowIntegrationTest {
                 .andReturn().getResponse().getContentAsString());
         long claimId = claimed.path("data").path("id").asLong();
 
+        mockMvc.perform(post("/api/claims/items/{id}", itemId)
+                        .header("Authorization", bearer(applicantToken))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(
+                                Map.of("description", "重复申请", "proof", "相同证明"))))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value("你已提交过该物品的认领申请"));
+
+        mockMvc.perform(patch("/api/claims/{id}/decision", claimId)
+                        .header("Authorization", bearer(applicantToken))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(Map.of("result", "APPROVED"))))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.message").value("只有信息发布者可以处理认领申请"));
+
         mockMvc.perform(patch("/api/claims/{id}/decision", claimId)
                         .header("Authorization", bearer(publisherToken))
                         .contentType(MediaType.APPLICATION_JSON)
@@ -86,6 +101,14 @@ class CoreWorkflowIntegrationTest {
         mockMvc.perform(get("/api/notifications").header("Authorization", bearer(applicantToken)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data[0].isRead").value(false));
+
+        mockMvc.perform(get("/api/admin/statistics").header("Authorization", bearer(adminToken)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.userCount").value(2))
+                .andExpect(jsonPath("$.data.itemCount").value(1))
+                .andExpect(jsonPath("$.data.claimedCount").value(1))
+                .andExpect(jsonPath("$.data.claimCount").value(1))
+                .andExpect(jsonPath("$.data.claimRate").value(100.0));
     }
 
     @Test
